@@ -1,0 +1,4 @@
+name = "CalculatedParameters"
+uuid = "c5cc2754-201b-11e9-1dc9-9986dc9f5801"
+authors = ["Graham Smith <grahamas@gmail.com>"]
+version = "0.1.0"
