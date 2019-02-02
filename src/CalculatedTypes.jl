@@ -10,7 +10,7 @@ function get_value(calculated_object::CalculatedType)
     calculated_object.value
 end
 
-function update(olds::AACT}, news::AbstractArray{T}) where {T, CT<:CalculatedType{T},AACT<:AbstractArray{CT}}
+function update(olds::AACT, news::AbstractArray{T}) where {T, CT<:CalculatedType{T},AACT<:AbstractArray{CT}}
     AACT[update(pair...) for pair in zip(olds, news)]
 end
 
