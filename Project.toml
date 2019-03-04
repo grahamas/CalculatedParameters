@@ -2,3 +2,8 @@ name = "CalculatedTypes"
 uuid = "c5cc2754-201b-11e9-1dc9-9986dc9f5801"
 authors = ["Graham Smith <grahamas@gmail.com>"]
 version = "0.1.0"
+
+[deps]
+Espresso = "6912e4f1-e036-58b0-9138-08d1e6358ea9"
+MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
