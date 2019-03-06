@@ -17,7 +17,7 @@ function update(olds::AACT, news::AbstractArray{T}) where {T, CT<:CalculatedType
     AACT[update(pair...) for pair in zip(olds, news)]
 end
 
-macro calculated_type(type_def_expr, calculation_body_expr, return_type=:Any)
+macro calculated_type(type_def_expr, calculation_body_expr=nothing, return_type=:Any)
     @capture(type_def_expr,
         struct (T_{PT__} | (T_{PT__} <: _))
             fields__
@@ -26,23 +26,30 @@ macro calculated_type(type_def_expr, calculation_body_expr, return_type=:Any)
     field_names = [(@capture(field, name_::_) ? name : field) for field in fields]
     field_mapping = Dict(name => :(source.$name) for name in field_names)
     calculation_body_expr = subs(calculation_body_expr, field_mapping)
-    calculated_type_expr = :($(Symbol(:Calculated,T)){$(PT...)})
+    rt_sym = gensym(:RT)
+    unparameterized_calculated_type_expr = Symbol(:Calculated,T)
+    calculated_type_expr = :($unparameterized_calculated_type_expr{$(PT...), $rt_sym})
     source_type_expr = :($T{$(PT...)})
+    if calculation_body_expr == nothing
+        calculate_fn_expr = :()
+    else
+        calculate_fn_expr = :(function calculate(source::$(source_type_expr)) where {$(PT...)}
+            $(calculation_body_expr)
+        end)
+    end
     return esc(quote
         $(type_def_expr)
         function $source_type_expr(; $(field_names...)) where {$(PT...)}
              $source_type_expr($(field_names...))
          end
-        function calculate(source::$(source_type_expr)) where {$(PT...)}
-            $(calculation_body_expr)
-        end
+         $(calculate_fn_expr)
         struct $(calculated_type_expr) <: CalculatedType{$(source_type_expr)}
             source::$(source_type_expr)
-            value::$return_type
-            $calculated_type_expr(source::$(source_type_expr)) where {$(PT...)} = new(source, calculate(source))
+            value::$rt_sym
+            #$calculated_type_expr(source::$(source_type_expr), calculated::$rt_sym) where {$(PT...), $rt_sym} = new(source, calculated)
         end
         function Calculated(source::$(source_type_expr)) where {$(PT...)}
-            $(calculated_type_expr)(source)
+            $(unparameterized_calculated_type_expr)(source, calculate(source))
         end
     end)
 end
