@@ -17,40 +17,50 @@ function update(olds::AACT, news::AbstractArray{T}) where {T, CT<:CalculatedType
     AACT[update(pair...) for pair in zip(olds, news)]
 end
 
-macro calculated_type(type_def_expr, calculation_body_expr=nothing, return_type=:Any)
+function make_calculation_fn_expr(calculation_fn_expr, source_type_expr, field_names, whereparams)
+    fn_dict = MacroTools.splitdef(calculation_fn_expr)
+    fn_args = [:(source::$(source_type_expr)), fn_dict[:args]...]
+    @assert all(!(name in fn_args) for name in field_names)
+    field_mapping = Dict(name => :(source.$name) for name in field_names)
+
+    fn_dict[:name] = :calculate
+    fn_dict[:args] = fn_args
+    fn_dict[:body] = subs(fn_dict[:body], field_mapping)
+    if :whereparams in keys(fn_dict)
+        fn_dict[:whereparams] = union(fn_dict[:whereparams], whereparams)
+    else
+        fn_dict[:whereparams] = whereparams
+    end
+    return MacroTools.combinedef(fn_dict), fn_args
+end
+macro calculated_type(type_def_expr, calculation_fn_expr=nothing, return_type=:Any)
     @capture(type_def_expr,
         struct (T_{PT__} | (T_{PT__} <: _))
             fields__
         end
         )
     field_names = [(@capture(field, name_::_) ? name : field) for field in fields]
-    field_mapping = Dict(name => :(source.$name) for name in field_names)
-    calculation_body_expr = subs(calculation_body_expr, field_mapping)
     rt_sym = gensym(:RT)
     unparameterized_calculated_type_expr = Symbol(:Calculated,T)
     calculated_type_expr = :($unparameterized_calculated_type_expr{$(PT...), $rt_sym})
     source_type_expr = :($T{$(PT...)})
-    if calculation_body_expr == nothing
-        calculate_fn_expr = :()
-    else
-        calculate_fn_expr = :(function calculate(source::$(source_type_expr)) where {$(PT...)}
-            $(calculation_body_expr)
-        end)
-    end
+    calculation_fn_expr, calculation_fn_args = make_calculation_fn_expr(calculation_fn_expr, source_type_expr, field_names, PT)
+    calculation_fn_arg_names = [splitarg(arg)[1] for arg in calculation_fn_args]
+
     return esc(quote
         $(type_def_expr)
         function $source_type_expr(; $(field_names...)) where {$(PT...)}
              $source_type_expr($(field_names...))
          end
-         $(calculate_fn_expr)
-        struct $(calculated_type_expr) <: CalculatedType{$(source_type_expr)}
+         $(calculation_fn_expr)
+         struct $(calculated_type_expr) <: CalculatedType{$(source_type_expr)}
             source::$(source_type_expr)
             value::$rt_sym
             #$calculated_type_expr(source::$(source_type_expr), calculated::$rt_sym) where {$(PT...), $rt_sym} = new(source, calculated)
-        end
-        function Calculated(source::$(source_type_expr)) where {$(PT...)}
-            $(unparameterized_calculated_type_expr)(source, calculate(source))
-        end
+         end
+         function Calculated($(calculation_fn_args...)) where {$(PT...)}
+             $(unparameterized_calculated_type_expr)(source, calculate($(calculation_fn_arg_names...)))
+         end
     end)
 end
 
