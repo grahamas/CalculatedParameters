@@ -23,7 +23,7 @@ function make_calculation_fn_expr(calculation_fn_expr, source_type_expr, field_n
     @assert all(!(name in fn_args) for name in field_names)
     field_mapping = Dict(name => :(source.$name) for name in field_names)
 
-    fn_dict[:name] = :calculate
+    fn_dict[:name] = :(CalculatedTypes.calculate)
     fn_dict[:args] = fn_args
     fn_dict[:body] = subs(fn_dict[:body], field_mapping)
     if :whereparams in keys(fn_dict)
@@ -59,11 +59,13 @@ macro calculated_type(type_def_expr, calculation_fn_expr=nothing, return_type=:A
             #$calculated_type_expr(source::$(source_type_expr), calculated::$rt_sym) where {$(PT...), $rt_sym} = new(source, calculated)
          end
          function Calculated($(calculation_fn_args...)) where {$(PT...)}
-             $(unparameterized_calculated_type_expr)(source, calculate($(calculation_fn_arg_names...)))
+             $(unparameterized_calculated_type_expr)(source, CalculatedTypes.calculate($(calculation_fn_arg_names...)))
          end
     end)
 end
 
-export CalculatedType, Calculated, update, get_value, @calculated_type
+calculate() = error("undefined.")
+
+export CalculatedType, Calculated, update, get_value, @calculated_type, calculate
 
 end
