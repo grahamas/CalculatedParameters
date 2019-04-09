@@ -48,7 +48,7 @@ macro calculated_type(type_def_expr, calculation_fn_expr=nothing, return_type=:A
     calculation_fn_arg_names = [splitarg(arg)[1] for arg in calculation_fn_args]
 
     return esc(quote
-        $(type_def_expr)
+        Base.@__doc__($(type_def_expr))
         function $source_type_expr(; $(field_names...)) where {$(PT...)}
              $source_type_expr($(field_names...))
          end
