@@ -53,11 +53,11 @@ macro calculated_type(type_def_expr, calculation_fn_expr=nothing, return_type=:A
              $source_type_expr($(field_names...))
          end
          $(calculation_fn_expr)
-         Base.@__doc__ struct $(calculated_type_expr) <: CalculatedType{$(source_type_expr)}
+         Base.@__doc__(struct $(calculated_type_expr) <: CalculatedType{$(source_type_expr)}
             source::$(source_type_expr)
             value::$rt_sym
             #$calculated_type_expr(source::$(source_type_expr), calculated::$rt_sym) where {$(PT...), $rt_sym} = new(source, calculated)
-         end
+         end)
          function Calculated($(calculation_fn_args...)) where {$(PT...)}
              $(unparameterized_calculated_type_expr)(source, CalculatedTypes.calculate($(calculation_fn_arg_names...)))
          end
