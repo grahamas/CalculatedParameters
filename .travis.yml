@@ -1,0 +1,21 @@
+language: julia
+julia: 1.1
+jobs:
+  include:
+  - stage: Documentation
+    julia: 1.1
+    os: linux
+    script:
+    - julia --project=doc/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); haskey(Pkg.installed(),
+      "Documenter") || Pkg.add("Documenter"); Pkg.instantiate(); include("doc/make.jl")'
+    after_success: skip
+deploy:
+  provider: pages
+  skip_cleanup: false
+  github_token: "$GITHUB_TOKEN"
+  keep_history: false
+  on:
+    branch: master
+notifications:
+  slack:
+    secure: ukBef0U0sCwTY/y+VPpLEzR5dxSx7r/tkf8PdQqd92Q9SwFpSohTH8AW1CUoCecT5N3f4ZKR0dy7rLDOXlNE7c3BUofweaSopxfK6uLLp2LrkpbrYFNUYHPFK2jWbF0aF0M+NstIzB7TWzJxyZQmwGbAvzkA9Yfgr4cuXj4CJaCBo2j+N5slK5zUODk5DLpbLkhovJDuE6/y07f1utBOrKUWKdfY3yuTq43dNM51ZA24GEppYOTeR15MFCFk3bNEmzjIOFUg0YJ7vE8XG1SreEAR6zly+SDE4eFZX6gaqXiNCem3a0lubcITtMBFbaZw+qTUKdsKdQrPnPKH5C26UsSKv1PxIEYIeVzjm7PoyOFn77Lb9h55EXn5Eqfum4EChXLwPmQDSzPWPZp8hTQTBkXoeCDAtiJEmHL4kPLDHBQndHBfv7QmzcsqVFQqchsW4zeFre9xeNZJXcCwk9HVkbydRIEPr/E36WYhTlbfHySYlKisjfC+CZF1FfP+fD2KEj0RH1atoM+xhT9Y48G0VnJ0PdwTGkYNZmdG5MlLOT8iepIdVm9yRPWB3ajMDDXTdvrmZa2WayFZw41AbAGuVTTuDu/xGM9Rngu7Pd/NL7j3jdPZLKOyv89SAdz7BVQobnKqtniiYs32LScW3z7nnQMwbgOukzjRJwya0wO4M/4=
