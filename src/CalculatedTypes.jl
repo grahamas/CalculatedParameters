@@ -5,11 +5,11 @@ using Parameters
 
 abstract type CalculatedType{S} end
 
-```
+"""
     Calculated(obj::T)::CalculatedType{T}
 
 Constructs the calculated version of `obj::T`, where the return type is a subtype of `CalculatedType{T}`. Must be implemented for every subtype of `CalculatedType`
-```
+"""
 function Calculated(a::T) where T
     error("Calculated type undefined for type $T")
 end
@@ -18,11 +18,6 @@ end
     get_value(calculated_object::CalculatedType)
 
 Return the precomputed value stored by `calculated_object`.
-
-```jldoctest SumType
-julia> get_value(calc_sum_type)
-4.0
-```
 """
 function get_value(calculated_object::CalculatedType)
     calculated_object.value
@@ -31,11 +26,6 @@ end
     get_source(calculated_object::CalculatedType)
 
 Return the original object  that generated `calculated_object`.
-
-```jldoctest SumType
-julia> get_source(calc_sum_type)
-SumType{Float64}(1.0, 3.0)
-```
 """
 function get_source(calculated_object::CalculatedType)
     calculated_object.source
@@ -65,20 +55,7 @@ end
 """
     @calculated_type(type_def_expr, calculation_fn_expr=nothing, return_type=:Any)
 
-Define a CalculatedType
-
-```jldoctest SumType
-julia> @calculated_type(struct SumType{T}
-        fieldA{T}
-        fieldB{T}
-    end, function calculate()
-        fieldA + fieldB
-    end,
-    T
-);
-
-julia> sum_type = SumType(1.0, 3.0);
-```
+Define a CalculatedType.
 """
 macro calculated_type(type_def_expr, calculation_fn_expr=nothing, return_type=:Any)
     @capture(type_def_expr,
@@ -115,11 +92,6 @@ end
     calculate(obj)
 
 Return the value calculated for `obj`, to be stored in the `CalculatedType`'s `value` field.
-
-```jldoctest
-julia> calc_sum_type = Calculated(sum_type);
-
-```
 """
 calculate(a::T) where T = error("calculate undefined for type $T.")
 
