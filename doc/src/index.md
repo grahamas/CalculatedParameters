@@ -12,13 +12,13 @@ Precompute expensive objects and/or generic interface for calculating parametriz
 
 ```jldoctest SumType
 julia> @calculated_type(struct SumType{T}
-        fieldA{T}
-        fieldB{T}
-    end, function calculate()
-        fieldA + fieldB
-    end,
-    T
-);
+            fieldA::T
+            fieldB::T
+        end, function calculate()
+            fieldA + fieldB
+        end,
+        T
+        );
 
 julia> sum_type = SumType(1.0, 3.0);
 

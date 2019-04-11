@@ -95,6 +95,6 @@ Return the value calculated for `obj`, to be stored in the `CalculatedType`'s `v
 """
 calculate(a::T) where T = error("calculate undefined for type $T.")
 
-export CalculatedType, Calculated, update, get_value, @calculated_type, calculate
+export CalculatedType, Calculated, update, get_value, get_source, @calculated_type, calculate
 
 end
