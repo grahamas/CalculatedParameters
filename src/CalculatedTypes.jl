@@ -5,12 +5,40 @@ using Parameters
 
 abstract type CalculatedType{S} end
 
+```
+    Calculated(obj::T)::CalculatedType{T}
+
+Constructs the calculated version of `obj::T`, where the return type is a subtype of `CalculatedType{T}`. Must be implemented for every subtype of `CalculatedType`
+```
 function Calculated(a::T) where T
     error("Calculated type undefined for type $T")
 end
 
+"""
+    get_value(calculated_object::CalculatedType)
+
+Return the precomputed value stored by `calculated_object`.
+
+```jldoctest SumType
+julia> get_value(calc_sum_type)
+4.0
+```
+"""
 function get_value(calculated_object::CalculatedType)
     calculated_object.value
+end
+"""
+    get_source(calculated_object::CalculatedType)
+
+Return the original object  that generated `calculated_object`.
+
+```jldoctest SumType
+julia> get_source(calc_sum_type)
+SumType{Float64}(1.0, 3.0)
+```
+"""
+function get_source(calculated_object::CalculatedType)
+    calculated_object.source
 end
 
 function update(olds::AACT, news::AbstractArray{T}) where {T, CT<:CalculatedType{T},AACT<:AbstractArray{CT}}
@@ -33,6 +61,25 @@ function make_calculation_fn_expr(calculation_fn_expr, source_type_expr, field_n
     end
     return MacroTools.combinedef(fn_dict), fn_args
 end
+
+"""
+    @calculated_type(type_def_expr, calculation_fn_expr=nothing, return_type=:Any)
+
+Define a CalculatedType
+
+```jldoctest SumType
+julia> @calculated_type(struct SumType{T}
+        fieldA{T}
+        fieldB{T}
+    end, function calculate()
+        fieldA + fieldB
+    end,
+    T
+);
+
+julia> sum_type = SumType(1.0, 3.0);
+```
+"""
 macro calculated_type(type_def_expr, calculation_fn_expr=nothing, return_type=:Any)
     @capture(type_def_expr,
         struct (T_{PT__} | (T_{PT__} <: _))
@@ -64,7 +111,17 @@ macro calculated_type(type_def_expr, calculation_fn_expr=nothing, return_type=:A
     end)
 end
 
-calculate() = error("undefined.")
+"""
+    calculate(obj)
+
+Return the value calculated for `obj`, to be stored in the `CalculatedType`'s `value` field.
+
+```jldoctest
+julia> calc_sum_type = Calculated(sum_type);
+
+```
+"""
+calculate(a::T) = error("calculate undefined for type $T.")
 
 export CalculatedType, Calculated, update, get_value, @calculated_type, calculate
 

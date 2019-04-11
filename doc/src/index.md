@@ -7,3 +7,7 @@ end
 ```
 
 Precompute expensive objects and/or generic interface for calculating parametrized objects.
+
+```@autodocs
+Modules = [CalculatedTypes]
+```
