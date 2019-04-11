@@ -121,7 +121,7 @@ julia> calc_sum_type = Calculated(sum_type);
 
 ```
 """
-calculate(a::T) = error("calculate undefined for type $T.")
+calculate(a::T) where T = error("calculate undefined for type $T.")
 
 export CalculatedType, Calculated, update, get_value, @calculated_type, calculate
 
